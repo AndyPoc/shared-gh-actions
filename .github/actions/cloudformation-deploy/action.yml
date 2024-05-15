@@ -1,0 +1,36 @@
+name: Deploy
+description: Deploy the service
+
+inputs:
+  region:
+    description: 'AWS region'
+    required: true
+  template_file:
+    description: 'Path to the CloudFormation template file'
+    required: true
+    default: 'template.yaml'
+  parameters_override:
+    description: 'Parameters to override in the CloudFormation template'
+    required: false
+  publish_dir:
+    description: 'Directory where the packaged.yaml file is located'
+    required: true
+    default: '.'
+  service_name:
+    description: 'Name of the service'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: sam deploy
+      shell: bash
+      working-directory: ${{ inputs.publish_dir }}
+      run: |
+        aws cloudformation deploy \
+          --template-file ${{ inputs.template_file }} \
+          --no-fail-on-empty-changeset \
+          --stack-name ${{ inputs.service_name }}-stack \
+          --region ${{ inputs.region }} \
+          --capabilities CAPABILITY_IAM \
+          --parameter-overrides ${{ inputs.parameters_override }}
